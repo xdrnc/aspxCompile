@@ -20,24 +20,23 @@ namespace SitecoreTestCode
     {
         public static void Main()
         {
-            Console.WriteLine(""code sample..."");
+            Console.WriteLine(""sample code"");
         }
     }
 }
     ";
 
-    //search in cache values 
-    private string pre1 = @"";
+    //search in cache values (e.g. problem like content not updated)
+    private string preset1 = @"";
 
     //search in content index
-    private string pre2 = @"";
+    private string preset2 = @"";
 
-    //GetItem request
-    private string pre3 = @"";
+    //get item request
+    private string preset3 = @"";
 
     //load recent events and last processed timestamp
-    private string pre4 = @"";
-
+    private string preset4 = @"";
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -107,5 +106,4 @@ namespace SitecoreTestCode
     }
 
 
-    }
 }
