@@ -21,7 +21,10 @@ namespace SitecoreTestCode
     {
         public static string Main()
         {
-             return Sitecore.Context.User.Name;;
+             string output = """"; //Sitecore.Context.User.Name;
+             
+             
+             return output;
         }
     }
 }
@@ -71,7 +74,7 @@ namespace SitecoreTestCode
     {
         try
         {
-            Response.Write("Sitecore.Context.User.Name = " + Sitecore.Context.User.Name);
+            // alextest Response.Write("Sitecore.Context.User.Name = " + Sitecore.Context.User.Name);
 
             // check user must have administrator role
             if (Sitecore.Context.User.IsAdministrator)
@@ -80,65 +83,27 @@ namespace SitecoreTestCode
 
                 TextArea1.InnerText = input;
 
-                string result = "";
-
                 CodeDomProvider codeDomProvider = CodeDomProvider.CreateProvider("C#");
 
-//                CSharpCodeProvider csp = new CSharpCodeProvider();
-
-//                ICodeCompiler icc = csp.CreateCompiler();
-
                 CompilerParameters compParams = new CompilerParameters();
-//                compParams.GenerateExecutable = true;
+
                 compParams.GenerateInMemory = true;
                 compParams.ReferencedAssemblies.Add("System.Web.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
 
-                //                string outputLocation = AppContext.BaseDirectory + "out.exe";
-                //                compParams.OutputAssembly = outputLocation;
-                //compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernela.dll");
 
-                //Response.Write(AppContext.BaseDirectory + @"bin\Sitecore.Kernel.dll");
-
-
-                //CompilerResults compResults = icc.CompileAssemblyFromSource(compParams, input);
                 CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
 
                 if (compResults.Errors.HasErrors)
                 {
-                    Response.Write("alextest compiler has errors: " + Sitecore.Context.Database.Name);
-
                     compResults.Errors.Cast<CompilerError>().ToList().ForEach(er => Response.Write(er + "\n"));
-
                 }
                 else
                 {
-                    /*                    var process = new Process
-                                        {
-                                            StartInfo = new ProcessStartInfo
-                                            {
-                                                FileName = outputLocation,
-                                                Arguments = "command line arguments to your executable",
-                                                UseShellExecute = false,
-                                                RedirectStandardOutput = true,
-                                                CreateNoWindow = true
-                                            }
-                                        };
-
-                                        process.Start();
-                                        while (!process.StandardOutput.EndOfStream)
-                                        {
-                                            result = process.StandardOutput.ReadLine();
-                                        };
-                    */
-                    //TextArea2.InnerText = result;
-
                     Assembly assembly = compResults.CompiledAssembly;
                     Type program = assembly.GetType("SitecoreTestCode.Program");
                     MethodInfo main = program.GetMethod("Main");
                     TextArea2.InnerText = (string) main.Invoke(null, null);
-
-                    
                 }
             }
             else
