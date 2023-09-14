@@ -64,6 +64,8 @@ namespace SitecoreTestCode
     }
 
     //    protected string Result { get; set; }
+
+
     protected void execute_Click(object sender, EventArgs e)
     {
         try
@@ -77,22 +79,26 @@ namespace SitecoreTestCode
 
                 string result = "";
 
-                CSharpCodeProvider csp = new CSharpCodeProvider();
+                CodeDomProvider codeDomProvider = CodeDomProvider.CreateProvider("C#");
 
-                ICodeCompiler icc = csp.CreateCompiler();
+//                CSharpCodeProvider csp = new CSharpCodeProvider();
+
+//                ICodeCompiler icc = csp.CreateCompiler();
 
                 CompilerParameters compParams = new CompilerParameters();
-                compParams.GenerateExecutable = true;
+//                compParams.GenerateExecutable = true;
                 compParams.GenerateInMemory = true;
+                compParams.ReferencedAssemblies.Add("System.Web.dll");
 
-                string outputLocation = AppContext.BaseDirectory + "out.exe";
-                compParams.OutputAssembly = outputLocation;
+                //                string outputLocation = AppContext.BaseDirectory + "out.exe";
+                //                compParams.OutputAssembly = outputLocation;
                 //compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernela.dll");
 
-                Response.Write(AppContext.BaseDirectory + @"bin\Sitecore.Kernel.dll");
+                //Response.Write(AppContext.BaseDirectory + @"bin\Sitecore.Kernel.dll");
 
 
-                CompilerResults compResults = icc.CompileAssemblyFromSource(compParams, input);
+                //CompilerResults compResults = icc.CompileAssemblyFromSource(compParams, input);
+                CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
 
                 if (compResults.Errors.HasErrors)
                 {
@@ -100,23 +106,30 @@ namespace SitecoreTestCode
                 }
                 else
                 {
-                    var process = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            FileName = outputLocation,
-                            Arguments = "command line arguments to your executable",
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            CreateNoWindow = true
-                        }
-                    };
+                    /*                    var process = new Process
+                                        {
+                                            StartInfo = new ProcessStartInfo
+                                            {
+                                                FileName = outputLocation,
+                                                Arguments = "command line arguments to your executable",
+                                                UseShellExecute = false,
+                                                RedirectStandardOutput = true,
+                                                CreateNoWindow = true
+                                            }
+                                        };
 
-                    process.Start();
-                    while (!process.StandardOutput.EndOfStream)
+                                        process.Start();
+                                        while (!process.StandardOutput.EndOfStream)
+                                        {
+                                            result = process.StandardOutput.ReadLine();
+                                        };
+                    */
+                    //TextArea2.InnerText = result;
+
+                    foreach (string stroutput in compResults.Output)
                     {
-                        result = process.StandardOutput.ReadLine();
-                    };
+                        result += stroutput;
+                    }
 
                     TextArea2.InnerText = result;
 
@@ -131,8 +144,5 @@ namespace SitecoreTestCode
         {
            Response.Write(ex);
         }
-
     }
-
-
 }
