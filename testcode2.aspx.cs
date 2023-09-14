@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Linq;
+using System.Reflection;
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -18,9 +19,9 @@ namespace SitecoreTestCode
 {
     public class Program
     {
-        public static void Main()
+        public static string Main()
         {
-            Console.WriteLine(""sample code"");
+             return Sitecore.Context.User.Name;;
         }
     }
 }
@@ -70,6 +71,8 @@ namespace SitecoreTestCode
     {
         try
         {
+            Response.Write("Sitecore.Context.User.Name = " + Sitecore.Context.User.Name);
+
             // check user must have administrator role
             if (Sitecore.Context.User.IsAdministrator)
             {
@@ -89,6 +92,7 @@ namespace SitecoreTestCode
 //                compParams.GenerateExecutable = true;
                 compParams.GenerateInMemory = true;
                 compParams.ReferencedAssemblies.Add("System.Web.dll");
+                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
 
                 //                string outputLocation = AppContext.BaseDirectory + "out.exe";
                 //                compParams.OutputAssembly = outputLocation;
@@ -102,7 +106,10 @@ namespace SitecoreTestCode
 
                 if (compResults.Errors.HasErrors)
                 {
+                    Response.Write("alextest compiler has errors: " + Sitecore.Context.Database.Name);
+
                     compResults.Errors.Cast<CompilerError>().ToList().ForEach(er => Response.Write(er + "\n"));
+
                 }
                 else
                 {
@@ -126,13 +133,12 @@ namespace SitecoreTestCode
                     */
                     //TextArea2.InnerText = result;
 
-                    foreach (string stroutput in compResults.Output)
-                    {
-                        result += stroutput;
-                    }
+                    Assembly assembly = compResults.CompiledAssembly;
+                    Type program = assembly.GetType("SitecoreTestCode.Program");
+                    MethodInfo main = program.GetMethod("Main");
+                    TextArea2.InnerText = (string) main.Invoke(null, null);
 
-                    TextArea2.InnerText = result;
-
+                    
                 }
             }
             else
