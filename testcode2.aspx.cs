@@ -1,14 +1,15 @@
 ﻿using System.CodeDom.Compiler;
 using System.Diagnostics;
-using Microsoft.CSharp;
-using Sitecore.Data;
 using Sitecore.Diagnostics;
-using Sitecore.Web.UI.Controls.Common.TextAreas;
 using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Linq;
 using System.Reflection;
+using Sitecore.Caching;
+
+using Sitecore.Data.Items;
+
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -31,16 +32,118 @@ namespace SitecoreTestCode
     ";
 
     //search in cache values (e.g. problem like content not updated)
-    private string preset1 = @"//cache sample";
+    private string preset1 = @"//cache sample
+using Sitecore.Caching;
+using Sitecore.Data;
+using Sitecore.Globalization;
+using Sitecore.Data.Items;
+
+namespace SitecoreTestCode
+{
+    public class Program
+    {
+        public static string Main()
+        {
+            string output = ""item does not exist in item cache""; 
+             
+            string databaseName = ""master"";
+            ItemCache itemCache = CacheManager.GetItemCache(Sitecore.Configuration.Factory.GetDatabase(databaseName));
+
+            ID itemId = new ID(""0DE95AE4-41AB-4D01-9EB0-67441B7C2450"");
+            Language itemLanguage = Language.Parse(""en"");
+            Version itemVersion = Version.Parse(1);
+
+            Item item = itemCache.GetItem(itemId, itemLanguage, itemVersion);
+            if( item != null)
+            {
+                output = ""found item ("" + itemId + "", language="" + itemLanguage + "", version="" + itemVersion + "") in the ItemCache, Name=""+ item.Name +"""";
+
+            }
+             
+            return output;
+        }
+    }
+}
+
+
+";
 
     //search in content index
-    private string preset2 = @"//index sample";
+    private string preset2 = @"//index sample
+/*
+ref
+Sitecore.ExperienceEditor.Utils.ItemUtility
+
+public static int GetLockedItemsCount(string userName)
+*/
+using System;
+
+namespace SitecoreTestCode
+{
+    public class Program
+    {
+        public static string Main()
+        {
+             string output = """"; 
+             
+             
+             return output;
+        }
+    }
+}
+
+";
 
     //get item request
-    private string preset3 = @"//GetItem sample";
+    private string preset3 = @"//GetItem sample
+using System;
+using Sitecore.Data;
+using Sitecore.Data.Items;
+
+namespace SitecoreTestCode
+{
+    public class Program
+    {
+        public static string Main()
+        {
+            string output = ""item cannot be found""; 
+            string databaseName = ""master""; // name of the database to check
+
+            Database database = Sitecore.Configuration.Factory.GetDatabase(databaseName);
+
+            Sitecore.Data.Items.Item item = database.GetItem(""sitecore/Content/Home""); //please put the item path you're checking...
+
+            if (item != null)
+            {
+                // put the information from the item to the """"output""""
+                output = ""item has the id: "" + item.ID;
+            }
+            
+            return output;
+        }
+    }
+}
+
+";
 
     //load recent events and last processed timestamp
-    private string preset4 = @"//event processing sample";
+    private string preset4 = @"//event processing sample
+using System;
+
+namespace SitecoreTestCode
+{
+    public class Program
+    {
+        public static string Main()
+        {
+             string output = """"; //Sitecore.Context.User.Name;
+             
+             
+             return output;
+        }
+    }
+}
+";
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -74,6 +177,16 @@ namespace SitecoreTestCode
     {
         try
         {
+            // playground #1
+            string indexName = "sitecore_master_index";
+
+
+            // playground #2
+
+
+            // playground #3
+
+
             // alextest Response.Write("Sitecore.Context.User.Name = " + Sitecore.Context.User.Name);
 
             // check user must have administrator role
@@ -89,6 +202,7 @@ namespace SitecoreTestCode
 
                 compParams.GenerateInMemory = true;
                 compParams.ReferencedAssemblies.Add("System.Web.dll");
+                compParams.ReferencedAssemblies.Add("System.Configuration.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
 
 
