@@ -9,7 +9,7 @@ using System.Reflection;
 using Sitecore.Caching;
 
 using Sitecore.Data.Items;
-
+using Sitecore.ContentSearch;
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -31,7 +31,7 @@ namespace SitecoreTestCode
 }
     ";
 
-    //search in cache values (e.g. problem like content not updated)
+
     private string preset1 = @"//cache sample
 using Sitecore.Caching;
 using Sitecore.Data;
@@ -68,15 +68,13 @@ namespace SitecoreTestCode
 
 ";
 
-    //search in content index
-    private string preset2 = @"//index sample
-/*
-ref
-Sitecore.ExperienceEditor.Utils.ItemUtility
 
-public static int GetLockedItemsCount(string userName)
-*/
+    private string preset2 = @"//index sample https://doc.sitecore.com/xp/en/developers/103/sitecore-experience-manager/linq-to-sitecore.html
+
 using System;
+using System.Linq;
+using Sitecore.ContentSearch;
+using Sitecore.ContentSearch.SearchTypes;
 
 namespace SitecoreTestCode
 {
@@ -84,9 +82,20 @@ namespace SitecoreTestCode
     {
         public static string Main()
         {
-             string output = """"; 
-             
-             
+            string output = """";
+
+            string indexName = ""sitecore_master_index"";
+
+            using(IProviderSearchContext context = ContentSearchManager.GetIndex(indexName).CreateSearchContext())
+            {
+                IQueryable<SearchResultItem> searchResult = context.GetQueryable<SearchResultItem>()
+                                .Where(r => r.Content.Contains(""abc""));
+
+                foreach(SearchResultItem sr in searchResult)
+                {
+                    output += sr.ItemId + ""\n"";
+                }
+            }
              return output;
         }
     }
@@ -94,7 +103,7 @@ namespace SitecoreTestCode
 
 ";
 
-    //get item request
+
     private string preset3 = @"//GetItem sample
 using System;
 using Sitecore.Data;
@@ -178,8 +187,6 @@ namespace SitecoreTestCode
         try
         {
             // playground #1
-            string indexName = "sitecore_master_index";
-
 
             // playground #2
 
@@ -202,8 +209,12 @@ namespace SitecoreTestCode
 
                 compParams.GenerateInMemory = true;
                 compParams.ReferencedAssemblies.Add("System.Web.dll");
+                compParams.ReferencedAssemblies.Add("System.Core.dll");
                 compParams.ReferencedAssemblies.Add("System.Configuration.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
+                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.dll");
+                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.Linq.dll"); 
+                
 
 
                 CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
