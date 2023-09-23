@@ -147,6 +147,7 @@ namespace SitecoreTestCode
         {
              string output = """"; //Sitecore.Context.User.Name;
              
+                
              
              return output;
         }
@@ -187,14 +188,13 @@ namespace SitecoreTestCode
         try
         {
             // playground #1
+            string output = ""; // for the list of recent events
+            string lastProcessedTimestamp = ""; // for the last processsed timestamp from Properties table
+
+
 
             // playground #2
 
-
-            // playground #3
-
-
-            // alextest Response.Write("Sitecore.Context.User.Name = " + Sitecore.Context.User.Name);
 
             // check user must have administrator role
             if (Sitecore.Context.User.IsAdministrator)
