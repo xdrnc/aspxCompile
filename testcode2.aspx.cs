@@ -145,6 +145,14 @@ namespace SitecoreTestCode
     //load recent events and last processed timestamp
     private string preset4 = @"//event processing sample
 using System;
+using System.Configuration;
+using Sitecore.Configuration;
+using Sitecore.Data;
+using System.Data.SqlClient;
+using System.Text;
+using Sitecore.Eventing;
+using System.Reflection;
+
 
 namespace SitecoreTestCode
 {
@@ -152,10 +160,55 @@ namespace SitecoreTestCode
     {
         public static string Main()
         {
-             string output = """"; //Sitecore.Context.User.Name;
-             
-                
-             
+            string output = """";
+            string databaseName = ""master"";
+
+            Database database = Factory.GetDatabase(databaseName);
+
+            MethodInfo getTimestampForLastProcessingMI = typeof(Sitecore.Eventing.EventQueue).GetMethod(""GetTimestampForLastProcessing"", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            IEventQueue queue = database.RemoteEvents.EventQueue;
+
+            var timestampObject = getTimestampForLastProcessingMI.Invoke(queue, null);
+
+            var datePI = timestampObject.GetType().GetProperty(""Date"", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            // last processed timestamp
+            output = ""Last Processed Timestamp = "" + timestampObject + "" ("" + datePI.GetValue(timestampObject) + "") \n List of Recent Events:  \n"";
+
+            // query for the list of recent events
+            string sqlQuery = ""select top (10) * from EventQueue order by [Created] desc"";
+
+            string connectionString = ConfigurationManager.ConnectionStrings[database.ConnectionStringName].ConnectionString;
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var sqlCommand = new SqlCommand(sqlQuery, connection))
+                {
+                    using (var sqlDataReader = sqlCommand.ExecuteReader())
+                    {
+                        StringBuilder sb = new StringBuilder();
+
+                        while (sqlDataReader.Read())
+                        {
+                            for (int i = 0; i < sqlDataReader.FieldCount; i++)
+                                if (sqlDataReader.GetValue(i) != DBNull.Value)
+                                {
+                                    sb.AppendFormat(""{0} "", sqlDataReader.GetValue(i).GetType() == typeof(byte[]) ? ""0x"" + BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace(""-"", string.Empty) + "" ("" + int.Parse(BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace(""-"", string.Empty), System.Globalization.NumberStyles.HexNumber) + "")"" : Convert.ToString(sqlDataReader.GetValue(i)));
+                                }
+            
+                            sb.AppendLine();
+                            sb.AppendLine();
+                                   
+                        }
+
+                        output = output + ""\n"" + sb;
+                    }
+                }
+            }
+
              return output;
         }
     }
@@ -187,77 +240,10 @@ namespace SitecoreTestCode
         TextArea1.InnerText = preset4;
     }
 
-    //    protected string Result { get; set; }
-
-
     protected void execute_Click(object sender, EventArgs e)
     {
         try
         {
-            // playground #1
-            string output = ""; // for the list of recent events
-            string databaseName = "master";
-
-            Sitecore.Data.Database database = Sitecore.Configuration.Factory.GetDatabase(databaseName);
-
-            MethodInfo getTimestampForLastProcessingMI = typeof(Sitecore.Eventing.EventQueue).GetMethod("GetTimestampForLastProcessing", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            IEventQueue queue = database.RemoteEvents.EventQueue;
-
-            var timestampObject = getTimestampForLastProcessingMI.Invoke(queue, null);
-
-            var datePI = timestampObject.GetType().GetProperty("Date", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-            // last processed timestamp
-            output = "Last Processed Timestamp = " + timestampObject + " (" + datePI.GetValue(timestampObject) + ") <br/> List of Recent Events:  <br/>";
-
-            // query for the list of recent events
-            string sqlQuery = "select top (10) * from EventQueue order by [Created] desc";
-
-            string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings[database.ConnectionStringName].ConnectionString;
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-
-                using (var sqlCommand = new SqlCommand(sqlQuery, connection))
-                {
-                    using (var sqlDataReader = sqlCommand.ExecuteReader())
-                    {
-                        StringBuilder sb = new StringBuilder();
-
-                        while (sqlDataReader.Read())
-                        {
-                            for (int i = 0; i < sqlDataReader.FieldCount; i++)
-                                if (sqlDataReader.GetValue(i) != DBNull.Value)
-                                {
-                                    /*                                    
-                                     if (sqlDataReader.GetValue(i).GetType() == typeof(byte[]))
-                                                                        {
-                                                                            sb.AppendFormat("{0} ", "0x" + BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace("-", string.Empty));
-
-
-                                                                        "(" + int.Parse( ((byte[]) sqlDataReader.GetValue(i)).ToString(), System.Globalization.NumberStyles.HexNumber) + ")" 
-                                                                        }
-                                    */
-                                    sb.AppendFormat("{0} ", sqlDataReader.GetValue(i).GetType() == typeof(byte[]) ? "0x" + BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace("-", string.Empty) : Convert.ToString(sqlDataReader.GetValue(i)));
-                                }
-                                   
-                        }
-
-                        output = output + sb;
-                    }
-                }
-            }
-
-
-            Response.Write(output);
-
-
-
-            // playground #2
-
-
             // check user must have administrator role
             if (Sitecore.Context.User.IsAdministrator)
             {
@@ -273,6 +259,8 @@ namespace SitecoreTestCode
                 compParams.ReferencedAssemblies.Add("System.Web.dll");
                 compParams.ReferencedAssemblies.Add("System.Core.dll");
                 compParams.ReferencedAssemblies.Add("System.Configuration.dll");
+                compParams.ReferencedAssemblies.Add("System.dll");
+                compParams.ReferencedAssemblies.Add("System.Data.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.Linq.dll"); 
