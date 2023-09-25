@@ -1,0 +1,1 @@
+Please put the pages into /sitecore/admin directory
