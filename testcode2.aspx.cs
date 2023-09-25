@@ -11,6 +11,12 @@ using Sitecore.Caching;
 using Sitecore.Data.Items;
 using Sitecore.ContentSearch;
 using Sitecore.Eventing;
+using Microsoft.Extensions.Configuration;
+
+using System.Configuration;
+using System.Data.SqlClient;
+using System.Text;
+
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -190,7 +196,6 @@ namespace SitecoreTestCode
         {
             // playground #1
             string output = ""; // for the list of recent events
-            string lastProcessedTimestamp = ""; // for the last processsed timestamp from Properties table
             string databaseName = "master";
 
             Sitecore.Data.Database database = Sitecore.Configuration.Factory.GetDatabase(databaseName);
@@ -201,11 +206,49 @@ namespace SitecoreTestCode
 
             var timestampObject = getTimestampForLastProcessingMI.Invoke(queue, null);
 
-//            lastProcessedTimestamp = timestampObject.ToString();
-
             var datePI = timestampObject.GetType().GetProperty("Date", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
-            output = "Last Processed Timestamp = " + timestampObject + " (" + datePI.GetValue(timestampObject) + ") <br/> List of Recent Events";
+            // last processed timestamp
+            output = "Last Processed Timestamp = " + timestampObject + " (" + datePI.GetValue(timestampObject) + ") <br/> List of Recent Events:  <br/>";
+
+            // query for the list of recent events
+            string sqlQuery = "select top (10) * from EventQueue order by [Created] desc";
+
+            string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings[database.ConnectionStringName].ConnectionString;
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var sqlCommand = new SqlCommand(sqlQuery, connection))
+                {
+                    using (var sqlDataReader = sqlCommand.ExecuteReader())
+                    {
+                        StringBuilder sb = new StringBuilder();
+
+                        while (sqlDataReader.Read())
+                        {
+                            for (int i = 0; i < sqlDataReader.FieldCount; i++)
+                                if (sqlDataReader.GetValue(i) != DBNull.Value)
+                                {
+                                    /*                                    
+                                     if (sqlDataReader.GetValue(i).GetType() == typeof(byte[]))
+                                                                        {
+                                                                            sb.AppendFormat("{0} ", "0x" + BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace("-", string.Empty));
+
+
+                                                                        "(" + int.Parse( ((byte[]) sqlDataReader.GetValue(i)).ToString(), System.Globalization.NumberStyles.HexNumber) + ")" 
+                                                                        }
+                                    */
+                                    sb.AppendFormat("{0} ", sqlDataReader.GetValue(i).GetType() == typeof(byte[]) ? "0x" + BitConverter.ToString((byte[])sqlDataReader.GetValue(i)).Replace("-", string.Empty) : Convert.ToString(sqlDataReader.GetValue(i)));
+                                }
+                                   
+                        }
+
+                        output = output + sb;
+                    }
+                }
+            }
 
 
             Response.Write(output);
