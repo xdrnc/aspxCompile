@@ -1,22 +1,8 @@
 ﻿using System.CodeDom.Compiler;
-using System.Diagnostics;
-using Sitecore.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Web;
 using System.Linq;
 using System.Reflection;
-using Sitecore.Caching;
-
-using Sitecore.Data.Items;
-using Sitecore.ContentSearch;
-using Sitecore.Eventing;
-using Microsoft.Extensions.Configuration;
-
-using System.Configuration;
-using System.Data.SqlClient;
-using System.Text;
-
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -265,8 +251,6 @@ namespace SitecoreTestCode
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.dll");
                 compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.Linq.dll"); 
                 
-
-
                 CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
 
                 if (compResults.Errors.HasErrors)
