@@ -10,6 +10,7 @@ using Sitecore.Caching;
 
 using Sitecore.Data.Items;
 using Sitecore.ContentSearch;
+using Sitecore.Eventing;
 
 public partial class TestCode : System.Web.UI.Page
 {
@@ -190,6 +191,24 @@ namespace SitecoreTestCode
             // playground #1
             string output = ""; // for the list of recent events
             string lastProcessedTimestamp = ""; // for the last processsed timestamp from Properties table
+            string databaseName = "master";
+
+            Sitecore.Data.Database database = Sitecore.Configuration.Factory.GetDatabase(databaseName);
+
+            MethodInfo getTimestampForLastProcessingMI = typeof(Sitecore.Eventing.EventQueue).GetMethod("GetTimestampForLastProcessing", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            IEventQueue queue = database.RemoteEvents.EventQueue;
+
+            var timestampObject = getTimestampForLastProcessingMI.Invoke(queue, null);
+
+//            lastProcessedTimestamp = timestampObject.ToString();
+
+            var datePI = timestampObject.GetType().GetProperty("Date", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            output = "Last Processed Timestamp = " + timestampObject + " (" + datePI.GetValue(timestampObject) + ") <br/> List of Recent Events";
+
+
+            Response.Write(output);
 
 
 
