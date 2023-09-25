@@ -237,38 +237,39 @@ namespace SitecoreTestCode
 
                 TextArea1.InnerText = input;
 
-                CodeDomProvider codeDomProvider = CodeDomProvider.CreateProvider("C#");
-
-                CompilerParameters compParams = new CompilerParameters();
-
-                compParams.GenerateInMemory = true;
-                compParams.ReferencedAssemblies.Add("System.Web.dll");
-                compParams.ReferencedAssemblies.Add("System.Core.dll");
-                compParams.ReferencedAssemblies.Add("System.Configuration.dll");
-                compParams.ReferencedAssemblies.Add("System.dll");
-                compParams.ReferencedAssemblies.Add("System.Data.dll");
-                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
-                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.dll");
-                compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.Linq.dll"); 
-                
-                CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
-
-                if (compResults.Errors.HasErrors)
+                using (CodeDomProvider codeDomProvider = CodeDomProvider.CreateProvider("C#"))
                 {
-                    compResults.Errors.Cast<CompilerError>().ToList().ForEach(er => Response.Write(er + "\n"));
-                }
-                else
-                {
-                    Assembly assembly = compResults.CompiledAssembly;
-                    Type program = assembly.GetType("SitecoreTestCode.Program");
-                    MethodInfo main = program.GetMethod("Main");
-                    TextArea2.InnerText = (string) main.Invoke(null, null);
+                    CompilerParameters compParams = new CompilerParameters();
+
+                    compParams.GenerateInMemory = true;
+                    compParams.ReferencedAssemblies.Add("System.Web.dll");
+                    compParams.ReferencedAssemblies.Add("System.Core.dll");
+                    compParams.ReferencedAssemblies.Add("System.Configuration.dll");
+                    compParams.ReferencedAssemblies.Add("System.dll");
+                    compParams.ReferencedAssemblies.Add("System.Data.dll");
+                    compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.Kernel.dll");
+                    compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.dll");
+                    compParams.ReferencedAssemblies.Add(AppContext.BaseDirectory + "bin\\Sitecore.ContentSearch.Linq.dll");
+
+                    CompilerResults compResults = codeDomProvider.CompileAssemblyFromSource(compParams, input);
+
+                    if (compResults.Errors.HasErrors)
+                    {
+                        compResults.Errors.Cast<CompilerError>().ToList().ForEach(er => Response.Write(er + "\n"));
+                    }
+                    else
+                    {
+                        Assembly assembly = compResults.CompiledAssembly;
+                        Type program = assembly.GetType("SitecoreTestCode.Program");
+                        MethodInfo main = program.GetMethod("Main");
+                        TextArea2.InnerText = (string)main.Invoke(null, null);
+                    }
                 }
             }
             else
             {
                 Response.Write("Only administrator user can execute this");
-            }
+            }            
         }
         catch(Exception ex) 
         {
